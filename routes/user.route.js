@@ -1,86 +1,35 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/user.model.js");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const authUser = require("../middlewares/auth.js");
+const {
+  register,
+  login,
+  getAllUsers,
+  getProfile,
+  editProfile,
+  changePassword,
+  changeVisibility,
+} = require("../controllers/user.controller.js");
 
-router.post("/createNewUser", async (req, res) => {
-  try {
-    console.log(req.body);
-    const { name, email, password, phone, bio, isAdmin, photo } = req.body;
-    const hashPassword = await bcrypt.hash(password, 10);
+// Endpoint to register new user
+router.post("/register", register);
 
-    const emailExists = await User.findOne({ email: email });
-    if (emailExists) {
-      // console.log(emailExists);
-      return res.status(400).json("Email already Exists");
-    }
+// Endpoint to login existing user
+router.post("/login", login);
 
-    const user = await User.create({
-      name,
-      email,
-      password: hashPassword,
-      phone,
-      bio,
-      isAdmin,
-      photo,
-    });
+// Endpoint to get all users
+router.get("/getAllUsers", authUser, getAllUsers);
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "3d",
-    });
+// Endpoint to get profile of the user logged in
+router.get("/getProfile", authUser, getProfile);
 
-    user.password = "";
+// Endpoint to edit the profile details of the user logged in
+router.patch("/editProfile", authUser, editProfile);
 
-    res.status(201).json({
-      user,
-      token,
-    });
-  } catch (error) {
-    console.log("Error -> ", error);
-    res.status(400).json(error);
-  }
-});
+// Endpoint to change the password of the user logged in
+router.patch("/changePassword", authUser, changePassword);
 
-router.post("/userLogin", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Email and Password should not be empty",
-      });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({
-        message: "Email is not registered!",
-      });
-    }
-
-    const verify = await bcrypt.compare(password, user.password);
-    if (!verify) {
-      return res.status(400).json({
-        message: "Password is Incorrect!",
-      });
-    }
-
-    user.password = "";
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "24h",
-    });
-    res.status(200).json({
-      status: "success",
-      user,
-      token,
-    });
-  } catch (err) {
-    res.status(500).json({
-      error: err.message,
-    });
-  }
-});
+// Endpoint to change public profile to private and private to public of the user logged in
+router.patch("/changeVisibility", authUser, changeVisibility);
 
 module.exports = router;

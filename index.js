@@ -1,35 +1,38 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
 const cors = require("cors");
-const UserRouter = require("./routes/user.route");
+require("dotenv").config();
 
-// Load environment variables from .env file
-dotenv.config();
+const UserRouter = require("./routes/user.route");
 
 // Create an Express application
 const app = express();
+
+// parse json request body
+app.use(express.json());
+
+// parse urlencoded request body
+app.use(express.urlencoded({ extended: true }));
+
+// enable cors
 app.use(cors());
 
-app.use(express.json());
-// Mount the user routes at the /users endpoint
+// Route
 app.use("/users", UserRouter);
 
-// Define the port to listen on, defaulting to 3005 if not provided in the environment
-const PORT = process.env.PORT || 3005;
+const PORT = process.env.PORT || 5000;
 
-// Connect to the MongoDB database using the MONGO_URI from the environment variables
+// Connect MongoDB database
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log("DB Connection Successfull");
-    console.log("Node Environment :", process.env.NODE_ENV);
-    // Start the Express server once the database connection is established
+    console.log("MongoDB connected");
+    // Start server after database connection is successful
     app.listen(PORT, () => {
-      console.log(`Server running at port: ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   })
-  .catch((err) => {
-    // Log any errors that occur during the database connection process
-    console.log("Error -> ", err.message);
+  .catch((error) => {
+    // Error for database connection failure
+    console.log(`DB connection failed: ${error}`);
   });

@@ -1,34 +1,60 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema({
+const UserSchema = new Schema(
+  {
     name: {
-        type: String,
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
-        type: String,
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      lowercase: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid Email");
+        }
+      },
     },
     password: {
-        type: String,
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 8,
+      validate(value) {
+        if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
+          throw new Error(
+            "Password must contain at least one letter and one number"
+          );
+        }
+      },
     },
-    phone: {
-        type: Number,
-        required: true,
+    profilePicture: {
+      type: String,
     },
     bio: {
-        type: String,
-        required: false,
+      type: String,
+    },
+    phone: {
+      type: String,
     },
     isAdmin: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
-    photo: {
-        type: String, 
-        required: false,
-    }
-}, { timestamps: true });
+    isPublic: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  { timestamps: true }
+);
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("user", UserSchema);
 
-module.exports = User;
+module.exports = { User };
