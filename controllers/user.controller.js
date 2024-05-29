@@ -157,12 +157,14 @@ const login = async (req, res) => {
       const userId = req.userId;
       const { oldPassword, newPassword } = req.query;
   
-      const user = getUserById(userId);
+      const user = await getUserById(userId);
       if (!user) {
         return res.status(404).json({
           message: "User Not Found",
         });
       }
+      console.log("oldPassword", oldPassword);
+      console.log("user.password", user.password);
       const verify = await bcrypt.compare(oldPassword, user.password);
       if (!verify) {
         return res.status(400).json({
@@ -194,22 +196,23 @@ const login = async (req, res) => {
   const changeVisibility = async (req, res) => {
     try {
       const userId = req.userId;
-      const { password, isPublic } = req.query;
+      const { isPublic, password } = req.query;
   
-      const user = getUserById(userId);
+      const user = await getUserById(userId);
       if (!user) {
         return res.status(404).json({
           message: "User Not Found",
         });
       }
       const verify = await bcrypt.compare(password, user.password);
+      console.log("password", password);
+      console.log("user.password", user.password);
       if (!verify) {
         return res.status(400).json({
           message: "Password is Incorrect!",
         });
       }
-      // return res.status(200).json(user);
-  
+
       const userDetail = await User.findByIdAndUpdate(
         userId,
         { isPublic: isPublic },
