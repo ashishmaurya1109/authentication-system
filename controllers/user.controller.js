@@ -23,22 +23,21 @@ const register = async (req, res) => {
       user.password = "";
   
       res.status(201).json({
+        message: "Registered Successfully!",
         user,
         token,
       });
     } catch (error) {
-      console.log("Error -> ", error);
       res.status(400).json(error);
     }
   }
 
 const login = async (req, res) => {
     try {
-        console.log("login");
       const { email, password } = req.body;
       if (!email || !password) {
         return res.status(400).json({
-          status: "fail",
+          status: "Login failed!",
           message: "Email and Password should not be empty",
         });
       }
@@ -46,7 +45,7 @@ const login = async (req, res) => {
       const user = await getUserByEmail(email)
       if (!user) {
         return res.status(404).json({
-          message: "Email is not registered!",
+          message: "No email found!",
         });
       }
   
@@ -62,8 +61,9 @@ const login = async (req, res) => {
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
         expiresIn: "24h",
       });
+
       res.status(200).json({
-        status: "success",
+        status: "Login Successful!",
         user,
         token,
       });
@@ -77,10 +77,11 @@ const login = async (req, res) => {
   const getAllUsers = async (req, res) => {
     try {
       const userId = req.userId;
-      const isUserAdmin = await getUserById(userId);
+      const user = await getUserById(userId);
+      console.log("isUserAdmin" ,user);
   
       let users;
-      if (!isUserAdmin.isAdmin) {
+      if (!user.isAdmin) {
         users = await User.find({ isPublic: true }).select(
           "name email createdAt updatedAt phone"
         );

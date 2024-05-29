@@ -4,7 +4,7 @@ const authUser = (req, res, next) => {
   try {
     const { token } = req.headers;
     if (!token) {
-      console.log("no-token", token);
+      console.log("No token found!!", token);
       return res.status(400).json({
         status: "Fail",
         message: "Please provide token",
